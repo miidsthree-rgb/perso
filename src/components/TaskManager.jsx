@@ -17,6 +17,7 @@ import {
   Repeat,
   CheckSquare,
   X,
+  Filter,
 } from 'lucide-react';
 import {
   getRecurrenceLabel,
@@ -37,6 +38,7 @@ export default function TaskManager({
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
@@ -258,86 +260,90 @@ export default function TaskManager({
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2 bg-slate-900/60 p-2.5 md:p-3 rounded-2xl border border-slate-800">
-        <div className="relative flex-1 min-w-[140px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Rechercher une tâche..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl focus:outline-none focus:border-indigo-500"
-          />
+      <div className="bg-slate-900/60 p-2.5 md:p-3 rounded-2xl border border-slate-800 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Rechercher une tâche..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`md:hidden p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${
+              showFilters
+                ? 'bg-indigo-600 text-white border-indigo-500'
+                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Filter className="w-3.5 h-3.5" />
+            <span>Filtres</span>
+          </button>
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-950 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded-xl focus:outline-none"
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="todo">À faire</option>
-          <option value="inprogress">En cours</option>
-          <option value="completed">Terminé</option>
-        </select>
-
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-slate-950 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded-xl focus:outline-none"
-        >
-          <option value="all">Toutes les catégories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="bg-slate-950 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded-xl focus:outline-none"
-        >
-          <option value="all">Toutes les priorités</option>
-          {priorities.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-
-        {completedCount > 0 && (
-          <button
-            onClick={handleClearCompleted}
-            className="text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 px-3 py-2 rounded-xl border border-slate-800 transition-all"
-            title="Supprimer les tâches terminées"
+        {/* Filters dropdowns and actions */}
+        <div className={`${showFilters ? 'flex' : 'hidden'} md:flex flex-wrap items-center gap-2 pt-1 border-t md:border-t-0 border-slate-800/60`}>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="flex-1 md:flex-none bg-slate-950 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 md:py-2 rounded-xl focus:outline-none"
           >
-            Purger terminées ({completedCount})
+            <option value="all">Tous les statuts</option>
+            <option value="todo">À faire</option>
+            <option value="inprogress">En cours</option>
+            <option value="completed">Terminé</option>
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="flex-1 md:flex-none bg-slate-950 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 md:py-2 rounded-xl focus:outline-none"
+          >
+            <option value="all">Toutes catégories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="flex-1 md:flex-none bg-slate-950 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 md:py-2 rounded-xl focus:outline-none"
+          >
+            <option value="all">Toutes priorités</option>
+            {priorities.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+
+          {completedCount > 0 && (
+            <button
+              onClick={handleClearCompleted}
+              className="text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-800 transition-all"
+              title="Supprimer les tâches terminées"
+            >
+              Purger ({completedCount})
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              if (confirm('Supprimer toutes les tâches ajoutées et ne garder que la démo ?')) {
+                setTasks(tasks.filter((t) => ['1', '2', '3'].includes(t.id)));
+              }
+            }}
+            className="text-[11px] text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 px-2.5 py-1.5 rounded-xl border border-amber-500/20 transition-all flex items-center gap-1"
+            title="Supprimer uniquement les tâches que vous avez créées"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Purger créées</span>
           </button>
-        )}
-
-        <button
-          onClick={() => {
-            if (confirm('Supprimer toutes les tâches ajoutées et ne garder que la démo ?')) {
-              setTasks(tasks.filter((t) => ['1', '2', '3'].includes(t.id)));
-            }
-          }}
-          className="text-xs text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 px-3 py-2 rounded-xl border border-amber-500/20 transition-all flex items-center gap-1.5"
-          title="Supprimer uniquement les tâches que vous avez créées"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          <span>Supprimer tâches ajoutées</span>
-        </button>
-
-        <button
-          onClick={() => {
-            if (confirm('Voulez-vous effacer TOUTES les tâches pour avoir une liste totalement vierge ?')) {
-              setTasks([]);
-            }
-          }}
-          className="text-xs text-rose-400/80 hover:text-rose-300 hover:bg-rose-500/10 px-3 py-2 rounded-xl border border-rose-500/20 transition-all flex items-center gap-1.5"
-          title="Vider complètement toutes les tâches"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          <span>Tout vider</span>
-        </button>
+        </div>
       </div>
 
       {/* Dynamic View rendering */}

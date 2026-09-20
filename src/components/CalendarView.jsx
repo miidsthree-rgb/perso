@@ -274,8 +274,23 @@ export default function CalendarView({ tasks, setTasks, setActiveTaskId, setActi
                   )}
                 </div>
 
-                {/* Task preview badges */}
-                <div className="space-y-1 overflow-hidden">
+                {/* Mobile: dot indicators */}
+                <div className="flex items-center justify-center gap-1 md:hidden py-1">
+                  {dayTasks.slice(0, 3).map((t) => (
+                    <span
+                      key={t.id}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        t.priority === 'Haute' ? 'bg-rose-500' : 'bg-indigo-500'
+                      }`}
+                    />
+                  ))}
+                  {dayTasks.length > 3 && (
+                    <span className="text-[8px] text-slate-500 font-bold leading-none">+</span>
+                  )}
+                </div>
+
+                {/* Desktop: Task preview badges */}
+                <div className="hidden md:block space-y-1 overflow-hidden">
                   {dayTasks.slice(0, 2).map((t) => (
                     <div
                       key={t.id}

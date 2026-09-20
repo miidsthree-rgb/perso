@@ -102,7 +102,7 @@ export default function App() {
   const activeTask = tasks.find((t) => t.id === activeTaskId);
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
+    <div className="flex flex-col h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Title bar with profile button */}
       <TitleBar
         activeTab={activeTab}
