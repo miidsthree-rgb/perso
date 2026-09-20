@@ -26,7 +26,7 @@ export default function TitleBar({ activeTab, user, onOpenProfile }) {
         <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono">v4.0</span>
       </div>
 
-      <div className="text-xs font-medium text-slate-400 capitalize">
+      <div className="text-xs font-medium text-slate-400 capitalize hidden sm:block">
         {activeTab === 'tasks' && '📋 Gestion des Tâches'}
         {activeTab === 'calendar' && '📅 Calendrier'}
         {activeTab === 'reminders' && '🔔 Rappels & Notifications'}
@@ -43,10 +43,10 @@ export default function TitleBar({ activeTab, user, onOpenProfile }) {
             className="flex items-center space-x-1.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 px-2 py-1 rounded-lg border border-slate-700 text-xs transition-colors"
             title="Mon Profil"
           >
-            <div className="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white">
+            <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-[11px] font-bold text-white">
               {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </div>
-            <span className="max-w-[90px] truncate font-medium text-[11px]">{user.name}</span>
+            <span className="max-w-[70px] sm:max-w-[90px] truncate font-medium text-[11px] hidden xs:inline">{user.name}</span>
           </button>
         )}
 

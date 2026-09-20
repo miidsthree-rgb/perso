@@ -109,69 +109,69 @@ export default function PomodoroTimer({
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 select-none space-y-6 relative overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 bg-slate-950 select-none space-y-4 md:space-y-6 relative overflow-y-auto">
       {/* Zen Mode Button */}
       <button
         onClick={onOpenZen}
-        className="absolute top-6 right-6 flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl border border-slate-800 shadow-lg text-xs font-semibold transition-all"
+        className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center space-x-1.5 md:space-x-2 bg-slate-900/90 hover:bg-slate-800 text-slate-300 px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl border border-slate-800 shadow-lg text-[11px] md:text-xs font-semibold transition-all backdrop-blur"
       >
-        <Sparkles className="w-4 h-4 text-indigo-400" />
-        <span>Mode Zen Plein Écran</span>
+        <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400" />
+        <span className="hidden xs:inline">Mode Zen</span>
       </button>
 
       {/* Mode selectors */}
-      <div className="flex bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex bg-slate-900/80 p-1 md:p-1.5 rounded-2xl border border-slate-800 shadow-xl max-w-full overflow-x-auto">
         <button
           onClick={() => handleSwitchMode('focus')}
-          className={`px-5 py-2 rounded-xl font-medium text-xs transition-all ${
+          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl font-medium text-[11px] sm:text-xs transition-all whitespace-nowrap ${
             sessionType === 'focus' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400'
           }`}
         >
-          🎯 Concentration (25m)
+          🎯 Focus (25m)
         </button>
         <button
           onClick={() => handleSwitchMode('shortBreak')}
-          className={`px-5 py-2 rounded-xl font-medium text-xs transition-all ${
+          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl font-medium text-[11px] sm:text-xs transition-all whitespace-nowrap ${
             sessionType === 'shortBreak' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'
           }`}
         >
-          ☕ Pause courte (5m)
+          ☕ Pause (5m)
         </button>
         <button
           onClick={() => handleSwitchMode('longBreak')}
-          className={`px-5 py-2 rounded-xl font-medium text-xs transition-all ${
+          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl font-medium text-[11px] sm:text-xs transition-all whitespace-nowrap ${
             sessionType === 'longBreak' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'
           }`}
         >
-          🌿 Pause longue (15m)
+          🌿 Longue (15m)
         </button>
       </div>
 
       {/* Active Task Banner */}
-      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl px-5 py-2 flex items-center justify-between text-xs max-w-md w-full">
+      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl px-4 md:px-5 py-2 flex items-center justify-between text-xs max-w-md w-full">
         <span className="text-slate-400">Tâche active :</span>
-        <span className="text-slate-200 font-semibold truncate">
+        <span className="text-slate-200 font-semibold truncate max-w-[200px] sm:max-w-none">
           {activeTask ? activeTask.title : 'Aucune tâche liée'}
         </span>
       </div>
 
       {/* Ring display */}
-      <div className="relative w-72 h-72 flex items-center justify-center">
+      <div className="relative w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center">
         <svg className="w-full h-full transform -rotate-90">
-          <circle cx="144" cy="144" r="125" className="stroke-slate-900 fill-none" strokeWidth="12" />
+          <circle cx="50%" cy="50%" r="42%" className="stroke-slate-900 fill-none" strokeWidth="12" />
           <circle
-            cx="144"
-            cy="144"
-            r="125"
+            cx="50%"
+            cy="50%"
+            r="42%"
             className="stroke-indigo-500 fill-none transition-all duration-1000"
             strokeWidth="12"
-            strokeDasharray={2 * Math.PI * 125}
-            strokeDashoffset={2 * Math.PI * 125 * (1 - progressPercent / 100)}
+            strokeDasharray={2 * Math.PI * 120}
+            strokeDashoffset={2 * Math.PI * 120 * (1 - progressPercent / 100)}
             strokeLinecap="round"
           />
         </svg>
         <div className="absolute flex flex-col items-center justify-center space-y-1">
-          <span className="text-6xl font-black tracking-tight font-mono text-slate-100">
+          <span className="text-5xl sm:text-6xl font-black tracking-tight font-mono text-slate-100">
             {formatTime(timeLeft)}
           </span>
           <span className="text-xs text-indigo-400 font-semibold">

@@ -27,18 +27,18 @@ export default function StatsDashboard({ tasks, sessions }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 p-6 space-y-6 overflow-y-auto">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 flex flex-col h-full bg-slate-950 p-3 md:p-6 space-y-4 md:space-y-6 overflow-y-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Tableau de Bord & Niveaux</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-100">Tableau de Bord & Niveaux</h1>
+          <p className="text-xs sm:text-sm text-slate-400">
             Suivez vos performances, gagnez des XP et débloquez des récompenses.
           </p>
         </div>
 
         <button
           onClick={handleExportCSV}
-          className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold"
+          className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold self-start sm:self-auto"
         >
           <Download className="w-4 h-4 text-emerald-400" />
           <span>Exporter Rapport CSV</span>

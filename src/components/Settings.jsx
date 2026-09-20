@@ -68,11 +68,11 @@ export default function SettingsView({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 p-6 space-y-6 overflow-y-auto">
+    <div className="flex-1 flex flex-col h-full bg-slate-950 p-3 md:p-6 space-y-4 md:space-y-6 overflow-y-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100">Réglages & Options</h1>
-        <p className="text-sm text-slate-400">
-          Personnalisez la durée de vos sessions, vos alertes sonores et gérez vos données.
+        <h1 className="text-xl md:text-2xl font-bold text-slate-100">Réglages & Options</h1>
+        <p className="text-xs sm:text-sm text-slate-400">
+          Personnalisez la durée de vos sessions, vos alertes et vos données.
         </p>
       </div>
 

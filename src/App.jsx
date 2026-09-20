@@ -10,6 +10,7 @@ import SettingsView from './components/Settings';
 import ZenMode from './components/ZenMode';
 import AuthModal from './components/AuthModal';
 import UserProfileModal from './components/UserProfileModal';
+import MobileNav from './components/MobileNav';
 import { playChimeSound } from './utils/audio';
 import {
   loadTasks,
@@ -101,7 +102,7 @@ export default function App() {
   const activeTask = tasks.find((t) => t.id === activeTaskId);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
+    <div className="flex flex-col h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
       {/* Title bar with profile button */}
       <TitleBar
         activeTab={activeTab}
@@ -113,73 +114,82 @@ export default function App() {
       {!isLoggedIn ? (
         <AuthModal onLoginSuccess={handleLoginSuccess} />
       ) : (
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar
+        <>
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              activeTask={activeTask}
+              activeSessionType={sessionType}
+              isTimerRunning={isTimerRunning}
+            />
+
+            <main className="flex-1 flex overflow-hidden">
+              {activeTab === 'tasks' && (
+                <TaskManager
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  activeTaskId={activeTaskId}
+                  setActiveTaskId={setActiveTaskId}
+                  setActiveTab={setActiveTab}
+                />
+              )}
+
+              {activeTab === 'calendar' && (
+                <CalendarView
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  setActiveTaskId={setActiveTaskId}
+                  setActiveTab={setActiveTab}
+                />
+              )}
+
+              {activeTab === 'reminders' && (
+                <RemindersManager tasks={tasks} setTasks={setTasks} />
+              )}
+
+              {activeTab === 'pomodoro' && (
+                <PomodoroTimer
+                  sessionType={sessionType}
+                  setSessionType={setSessionType}
+                  timeLeft={timeLeft}
+                  setTimeLeft={setTimeLeft}
+                  isRunning={isTimerRunning}
+                  setIsRunning={setIsTimerRunning}
+                  settings={settings}
+                  activeTask={activeTask}
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  sessions={sessions}
+                  setSessions={setSessions}
+                  onOpenZen={() => setIsZenOpen(true)}
+                />
+              )}
+
+              {activeTab === 'stats' && (
+                <StatsDashboard tasks={tasks} sessions={sessions} />
+              )}
+
+              {activeTab === 'settings' && (
+                <SettingsView
+                  settings={settings}
+                  setSettings={setSettings}
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  sessions={sessions}
+                  setSessions={setSessions}
+                />
+              )}
+            </main>
+          </div>
+
+          {/* Mobile Bottom Navigation Bar */}
+          <MobileNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            activeTask={activeTask}
-            activeSessionType={sessionType}
             isTimerRunning={isTimerRunning}
           />
-
-          <main className="flex-1 flex overflow-hidden">
-            {activeTab === 'tasks' && (
-              <TaskManager
-                tasks={tasks}
-                setTasks={setTasks}
-                activeTaskId={activeTaskId}
-                setActiveTaskId={setActiveTaskId}
-                setActiveTab={setActiveTab}
-              />
-            )}
-
-            {activeTab === 'calendar' && (
-              <CalendarView
-                tasks={tasks}
-                setTasks={setTasks}
-                setActiveTaskId={setActiveTaskId}
-                setActiveTab={setActiveTab}
-              />
-            )}
-
-            {activeTab === 'reminders' && (
-              <RemindersManager tasks={tasks} setTasks={setTasks} />
-            )}
-
-            {activeTab === 'pomodoro' && (
-              <PomodoroTimer
-                sessionType={sessionType}
-                setSessionType={setSessionType}
-                timeLeft={timeLeft}
-                setTimeLeft={setTimeLeft}
-                isRunning={isTimerRunning}
-                setIsRunning={setIsTimerRunning}
-                settings={settings}
-                activeTask={activeTask}
-                tasks={tasks}
-                setTasks={setTasks}
-                sessions={sessions}
-                setSessions={setSessions}
-                onOpenZen={() => setIsZenOpen(true)}
-              />
-            )}
-
-            {activeTab === 'stats' && (
-              <StatsDashboard tasks={tasks} sessions={sessions} />
-            )}
-
-            {activeTab === 'settings' && (
-              <SettingsView
-                settings={settings}
-                setSettings={setSettings}
-                tasks={tasks}
-                setTasks={setTasks}
-                sessions={sessions}
-                setSessions={setSessions}
-              />
-            )}
-          </main>
-        </div>
+        </>
       )}
 
       {/* Profile Modal */}

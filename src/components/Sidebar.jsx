@@ -12,7 +12,7 @@ export default function Sidebar({ activeTab, setActiveTab, activeTask, activeSes
   ];
 
   return (
-    <aside className="w-56 bg-slate-900/80 border-r border-slate-800/80 flex flex-col justify-between p-3 select-none backdrop-blur">
+    <aside className="hidden md:flex w-56 bg-slate-900/80 border-r border-slate-800/80 flex-col justify-between p-3 select-none backdrop-blur flex-shrink-0">
       <div className="space-y-6">
         <nav className="space-y-1">
           {navItems.map((item) => {

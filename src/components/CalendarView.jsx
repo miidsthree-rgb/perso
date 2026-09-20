@@ -174,37 +174,37 @@ export default function CalendarView({ tasks, setTasks, setActiveTaskId, setActi
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-950 overflow-hidden p-6 gap-6">
+    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-950 overflow-y-auto md:overflow-hidden p-3 md:p-6 gap-4 md:gap-6">
       {/* Calendar Main Grid Section */}
-      <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
+      <div className="flex-1 flex flex-col space-y-3 md:space-y-4 min-h-[380px] md:min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-indigo-400" />
+            <h1 className="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 md:w-6 md:h-6 text-indigo-400" />
               Calendrier & Planning
             </h1>
             <p className="text-xs text-slate-400">
-              Visualisez vos échéances, gérez les événements répétés et planifiez vos journées.
+              Visualisez vos échéances et événements répétés.
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 self-start sm:self-auto">
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl"
+              className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl"
             >
               Aujourd'hui
             </button>
 
-            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1">
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 md:p-1">
               <button
                 onClick={handlePrevMonth}
                 className="p-1 text-slate-400 hover:text-slate-200"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-3 text-xs font-bold text-slate-200 min-w-[110px] text-center">
+              <span className="px-2 md:px-3 text-xs font-bold text-slate-200 min-w-[95px] md:min-w-[110px] text-center">
                 {monthNames[month]} {year}
               </span>
               <button
@@ -218,7 +218,7 @@ export default function CalendarView({ tasks, setTasks, setActiveTaskId, setActi
         </div>
 
         {/* Days of week header */}
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-slate-400 pb-1">
+        <div className="grid grid-cols-7 gap-1 md:gap-2 text-center text-[10px] md:text-xs font-semibold text-slate-400 pb-1">
           <span>Lun</span>
           <span>Mar</span>
           <span>Mer</span>
@@ -230,7 +230,7 @@ export default function CalendarView({ tasks, setTasks, setActiveTaskId, setActi
 
         {/* Calendar Grid */}
         <div
-          className="flex-1 grid grid-cols-7 gap-2 overflow-y-auto pr-1"
+          className="flex-1 grid grid-cols-7 gap-1 md:gap-2 overflow-y-auto pr-0.5 md:pr-1"
           style={{ gridTemplateRows: `repeat(${totalCellsNeeded / 7}, minmax(0, 1fr))` }}
         >
           {daysArray.map((dayItem, idx) => {
@@ -242,7 +242,7 @@ export default function CalendarView({ tasks, setTasks, setActiveTaskId, setActi
               <div
                 key={idx}
                 onClick={() => setSelectedDateStr(dayItem.dateStr)}
-                className={`p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between min-h-[75px] ${
+                className={`p-1.5 md:p-2 rounded-xl md:rounded-2xl border transition-all cursor-pointer flex flex-col justify-between min-h-[50px] md:min-h-[75px] ${
                   isSelected
                     ? 'border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10'
                     : isToday
