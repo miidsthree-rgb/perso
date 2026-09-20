@@ -1,0 +1,3 @@
+@echo off
+title Lancement de FocusPulse...
+start "" "%~dp0dist-app\FocusPulse-win32-x64\FocusPulse.exe"
