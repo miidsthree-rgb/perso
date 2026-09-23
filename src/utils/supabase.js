@@ -1,15 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuration keys: from environment variables or saved settings in localStorage
-export const getSupabaseConfig = () => {
-  const envUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_URL : '';
-  const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_ANON_KEY : '';
-  
-  const localUrl = typeof window !== 'undefined' ? localStorage.getItem('focuspulse_supabase_url') : '';
-  const localKey = typeof window !== 'undefined' ? localStorage.getItem('focuspulse_supabase_anon_key') : '';
+// Default Supabase project configuration (embedded for zero-setup multi-device sync)
+const DEFAULT_SUPABASE_URL = 'https://cbubsdhhuojjsaoakdnm.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNidWJzZGhodW9qanNhb2FrZG5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzI3NTUsImV4cCI6MjEwNTc0ODc1NX0.Xql9bhh5mMptsvHEGz2pCc_GnZoChXlzA8PBWGhQS7k';
 
-  const supabaseUrl = (envUrl || localUrl || '').trim();
-  const supabaseAnonKey = (envKey || localKey || '').trim();
+// Configuration keys: from environment variables, localStorage, or embedded default
+export const getSupabaseConfig = () => {
+  const envUrl =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env.VITE_SUPABASE_URL
+      : '';
+  const envKey =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env.VITE_SUPABASE_ANON_KEY
+      : '';
+
+  const localUrl =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('focuspulse_supabase_url')
+      : '';
+  const localKey =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('focuspulse_supabase_anon_key')
+      : '';
+
+  const supabaseUrl = (envUrl || localUrl || DEFAULT_SUPABASE_URL).trim();
+  const supabaseAnonKey = (envKey || localKey || DEFAULT_SUPABASE_ANON_KEY).trim();
 
   return { supabaseUrl, supabaseAnonKey };
 };
@@ -18,9 +35,9 @@ export const isSupabaseConfigured = () => {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
   return Boolean(
     supabaseUrl &&
-    supabaseUrl.startsWith('https://') &&
-    supabaseAnonKey &&
-    supabaseAnonKey.length > 20
+      supabaseUrl.startsWith('https://') &&
+      supabaseAnonKey &&
+      supabaseAnonKey.length > 20
   );
 };
 
@@ -96,7 +113,7 @@ export const supabase = new Proxy(
 export async function signUpWithSupabase(email, password, fullName) {
   const client = getSupabase();
   if (!client) {
-    throw new Error('Supabase n\'est pas encore configuré. Veuillez renseigner l\'URL et la clé API.');
+    throw new Error("Supabase n'est pas accessible.");
   }
 
   const { data, error } = await client.auth.signUp({
@@ -116,7 +133,7 @@ export async function signUpWithSupabase(email, password, fullName) {
 export async function signInWithSupabase(email, password) {
   const client = getSupabase();
   if (!client) {
-    throw new Error('Supabase n\'est pas encore configuré. Veuillez renseigner l\'URL et la clé API.');
+    throw new Error("Supabase n'est pas accessible.");
   }
 
   const { data, error } = await client.auth.signInWithPassword({
@@ -143,7 +160,9 @@ export async function getSupabaseUser() {
   const client = getSupabase();
   if (!client) return null;
   try {
-    const { data: { user } } = await client.auth.getUser();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
     return user;
   } catch (err) {
     return null;

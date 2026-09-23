@@ -6,25 +6,15 @@ import {
   User,
   Eye,
   EyeOff,
-  Cloud,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
-  Settings,
   ArrowRight,
-  Sparkles,
   Loader2,
   Smartphone,
   Laptop,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
-import {
-  isSupabaseConfigured,
-  getSupabaseConfig,
-  saveCustomSupabaseConfig,
-  signUpWithSupabase,
-  signInWithSupabase,
-} from '../utils/supabase';
-import { saveUserAccount, loadUserAccount } from '../utils/storage';
+import { signUpWithSupabase, signInWithSupabase } from '../utils/supabase';
+import { saveUserAccount } from '../utils/storage';
 
 export default function AuthModal({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
@@ -36,19 +26,9 @@ export default function AuthModal({ onLoginSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
 
-  // Supabase keys configuration modal/panel
-  const [hasCloudConfig, setHasCloudConfig] = useState(() => isSupabaseConfigured());
-  const [showConfigPanel, setShowConfigPanel] = useState(false);
-  const [showHelpGuide, setShowHelpGuide] = useState(false);
-
-  const initialCfg = getSupabaseConfig();
-  const [supabaseUrlInput, setSupabaseUrlInput] = useState(initialCfg.supabaseUrl || '');
-  const [supabaseKeyInput, setSupabaseKeyInput] = useState(initialCfg.supabaseAnonKey || '');
-  const [configSavedSuccess, setConfigSavedSuccess] = useState(false);
-
   const getPasswordStrength = (pass) => {
     if (!pass) return { label: '', color: '' };
-    if (pass.length < 6) return { label: 'Trop court (min 6)', color: 'bg-rose-500' };
+    if (pass.length < 6) return { label: 'Court (min 6 car.)', color: 'bg-rose-500' };
     if (pass.length >= 8 && /[A-Z]/.test(pass) && /[0-9]/.test(pass)) {
       return { label: 'Très Fort 🔒', color: 'bg-emerald-500' };
     }
@@ -56,43 +36,6 @@ export default function AuthModal({ onLoginSuccess }) {
   };
 
   const strength = getPasswordStrength(password);
-
-  const handleSaveConfig = (e) => {
-    e.preventDefault();
-    if (!supabaseUrlInput.trim().startsWith('https://')) {
-      setErrorMessage("L'URL Supabase doit débuter par https://");
-      return;
-    }
-    if (supabaseKeyInput.trim().length < 20) {
-      setErrorMessage('La clé publique anon Supabase semble invalide.');
-      return;
-    }
-
-    saveCustomSupabaseConfig(supabaseUrlInput.trim(), supabaseKeyInput.trim());
-    setHasCloudConfig(true);
-    setConfigSavedSuccess(true);
-    setErrorMessage('');
-    setTimeout(() => {
-      setConfigSavedSuccess(false);
-      setShowConfigPanel(false);
-    }, 1500);
-  };
-
-  const handleLocalFallback = () => {
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMessage('Veuillez entrer une adresse email valide.');
-      return;
-    }
-    const localUser = {
-      id: 'local-' + Date.now(),
-      name: fullName.trim() || email.split('@')[0],
-      email: email.trim().toLowerCase(),
-      isCloud: false,
-      createdAt: new Date().toISOString(),
-    };
-    saveUserAccount(localUser);
-    onLoginSuccess(localUser);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,74 +52,70 @@ export default function AuthModal({ onLoginSuccess }) {
       return;
     }
 
-    // 1. If Supabase is configured, use real Cloud Auth
-    if (hasCloudConfig) {
-      setLoading(true);
-      try {
-        if (mode === 'signup') {
-          if (!fullName.trim()) {
-            setErrorMessage('Veuillez entrer votre nom complet.');
-            setLoading(false);
-            return;
-          }
+    setLoading(true);
 
-          const res = await signUpWithSupabase(email, password, fullName);
-
-          if (res?.user && !res?.session) {
-            // Email confirmation enabled on Supabase project
-            setInfoMessage(
-              'Compte créé avec succès ! Un e-mail de confirmation vous a été envoyé. Vérifiez vos spams ou désactivez la confirmation d\'email dans Supabase pour une connexion instantanée.'
-            );
-            setLoading(false);
-            return;
-          }
-
-          if (res?.user) {
-            const newUser = {
-              id: res.user.id,
-              name: fullName.trim(),
-              email: res.user.email,
-              isCloud: true,
-              createdAt: res.user.created_at || new Date().toISOString(),
-            };
-            saveUserAccount(newUser);
-            onLoginSuccess(newUser);
-          }
-        } else {
-          // Sign In
-          const res = await signInWithSupabase(email, password);
-          if (res?.user) {
-            const loggedInUser = {
-              id: res.user.id,
-              name: res.user.user_metadata?.full_name || email.split('@')[0],
-              email: res.user.email,
-              isCloud: true,
-              createdAt: res.user.created_at || new Date().toISOString(),
-            };
-            saveUserAccount(loggedInUser);
-            onLoginSuccess(loggedInUser);
-          }
+    try {
+      if (mode === 'signup') {
+        if (!fullName.trim()) {
+          setErrorMessage('Veuillez entrer votre nom complet.');
+          setLoading(false);
+          return;
         }
-      } catch (err) {
-        console.error('Erreur authentification:', err);
-        const msg = err.message || '';
-        if (msg.includes('Invalid login credentials')) {
-          setErrorMessage('Adresse email ou mot de passe incorrect.');
-        } else if (msg.includes('User already registered')) {
-          setErrorMessage('Un compte existe déjà avec cette adresse email. Veuillez vous connecter.');
-        } else if (msg.includes('Password should be at least')) {
-          setErrorMessage('Le mot de passe doit comporter au moins 6 caractères.');
-        } else if (msg.includes('Email not confirmed')) {
-          setErrorMessage('Veuillez confirmer votre email avant de vous connecter (ou désactivez "Confirm email" dans Supabase).');
-        } else {
-          setErrorMessage(msg || 'Une erreur est survenue lors de la connexion.');
+
+        const res = await signUpWithSupabase(email, password, fullName);
+
+        if (res?.user && !res?.session) {
+          setInfoMessage(
+            'Votre compte a été créé ! Si la confirmation d\'email est requise sur Supabase, vérifiez votre boîte de réception ou connectez-vous directement.'
+          );
+          setLoading(false);
+          return;
         }
-      } finally {
-        setLoading(false);
+
+        if (res?.user) {
+          const newUser = {
+            id: res.user.id,
+            name: fullName.trim(),
+            email: res.user.email,
+            isCloud: true,
+            createdAt: res.user.created_at || new Date().toISOString(),
+          };
+          saveUserAccount(newUser);
+          onLoginSuccess(newUser);
+        }
+      } else {
+        // Sign In
+        const res = await signInWithSupabase(email, password);
+        if (res?.user) {
+          const loggedInUser = {
+            id: res.user.id,
+            name: res.user.user_metadata?.full_name || email.split('@')[0],
+            email: res.user.email,
+            isCloud: true,
+            createdAt: res.user.created_at || new Date().toISOString(),
+          };
+          saveUserAccount(loggedInUser);
+          onLoginSuccess(loggedInUser);
+        }
       }
-    } else {
-      // 2. Local Fallback mode when no Supabase keys are provided yet
-      handleLocalFallback();
+    } catch (err) {
+      console.error('Erreur authentification:', err);
+      const msg = err.message || '';
+      if (msg.includes('Invalid login credentials')) {
+        setErrorMessage('Adresse email ou mot de passe incorrect.');
+      } else if (msg.includes('User already registered')) {
+        setErrorMessage('Un compte existe déjà avec cette adresse email. Veuillez vous connecter.');
+      } else if (msg.includes('Password should be at least')) {
+        setErrorMessage('Le mot de passe doit comporter au moins 6 caractères.');
+      } else if (msg.includes('Email not confirmed')) {
+        setErrorMessage(
+          'Veuillez confirmer votre email avant de vous connecter (ou décochez "Confirm email" dans Supabase > Authentication > Providers > Email).'
+        );
+      } else {
+        setErrorMessage(msg || 'Une erreur est survenue lors de la connexion.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,128 +124,21 @@ export default function AuthModal({ onLoginSuccess }) {
       {/* Background Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-7 shadow-2xl relative z-10 space-y-4 my-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative z-10 space-y-5 my-auto">
         {/* Header Logo */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30">
-            <Flame className="w-7 h-7" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30">
+            <Flame className="w-8 h-8" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-100">
-            Bienvenue sur <span className="text-indigo-400">FocusPulse</span>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-100">
+            Focus<span className="text-indigo-400">Pulse</span>
           </h1>
           <p className="text-xs text-slate-400">
             {mode === 'signup'
-              ? 'Créez votre compte en ligne pour synchroniser vos tâches partout.'
+              ? 'Créez votre compte pour synchroniser vos tâches partout.'
               : 'Connectez-vous pour retrouver vos tâches sur votre PC et votre Téléphone.'}
           </p>
         </div>
-
-        {/* Cloud Status Bar */}
-        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-2">
-            <div
-              className={`w-2.5 h-2.5 rounded-full ${
-                hasCloudConfig ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
-            <span className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
-              <Cloud className="w-3.5 h-3.5 text-indigo-400" />
-              {hasCloudConfig ? (
-                <span className="text-emerald-400">Cloud Supabase Connecté</span>
-              ) : (
-                <span className="text-amber-400">Cloud non configuré</span>
-              )}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setShowConfigPanel(!showConfigPanel);
-              setErrorMessage('');
-            }}
-            className="flex items-center space-x-1 text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded-lg hover:bg-indigo-500/10 transition-colors"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{showConfigPanel ? 'Fermer' : 'Clés Supabase'}</span>
-          </button>
-        </div>
-
-        {/* Cloud Setup Drawer / Panel */}
-        {showConfigPanel && (
-          <div className="bg-slate-950 border border-indigo-500/30 rounded-2xl p-4 space-y-3 text-xs animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                <Cloud className="w-4 h-4 text-indigo-400" />
-                Connexion Cloud Supabase
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowHelpGuide(!showHelpGuide)}
-                className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 underline"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-                Aide (2 min)
-              </button>
-            </div>
-
-            {showHelpGuide && (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-300 space-y-2 leading-relaxed">
-                <p className="font-bold text-indigo-300">Guide rapide Supabase gratuit :</p>
-                <ol className="list-decimal list-inside space-y-1 text-slate-400">
-                  <li>Rendez-vous sur <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-indigo-400 underline">supabase.com</a> et créez un projet gratuit.</li>
-                  <li>Dans l'onglet <strong>SQL Editor</strong>, collez le contenu du fichier <code className="text-indigo-300 bg-slate-950 px-1 rounded">supabase-setup.sql</code> et cliquez sur <strong>Run</strong>.</li>
-                  <li>Dans <strong>Project Settings &gt; API</strong>, copiez l'<strong>URL</strong> et la clé publique <strong>anon</strong>.</li>
-                  <li>Collez-les ci-dessous pour lier vos comptes PC et Téléphone !</li>
-                </ol>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveConfig} className="space-y-2.5">
-              <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                  URL du projet Supabase
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="https://xyzcompany.supabase.co"
-                  value={supabaseUrlInput}
-                  onChange={(e) => setSupabaseUrlInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-200 px-3 py-2 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                  Clé publique anon
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-                  value={supabaseKeyInput}
-                  onChange={(e) => setSupabaseKeyInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-200 px-3 py-2 rounded-xl focus:outline-none focus:border-indigo-500 text-xs font-mono"
-                />
-              </div>
-
-              {configSavedSuccess && (
-                <div className="text-emerald-400 text-[11px] flex items-center gap-1.5 py-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Configuration sauvegardée avec succès !
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-colors text-xs flex items-center justify-center space-x-1"
-              >
-                <span>Enregistrer la clé Cloud</span>
-              </button>
-            </form>
-          </div>
-        )}
 
         {/* Mode Selector Tabs */}
         <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs">
@@ -317,7 +149,7 @@ export default function AuthModal({ onLoginSuccess }) {
               setErrorMessage('');
               setInfoMessage('');
             }}
-            className={`flex-1 py-2 font-semibold rounded-xl transition-all ${
+            className={`flex-1 py-2.5 font-semibold rounded-xl transition-all ${
               mode === 'login'
                 ? 'bg-indigo-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
@@ -332,7 +164,7 @@ export default function AuthModal({ onLoginSuccess }) {
               setErrorMessage('');
               setInfoMessage('');
             }}
-            className={`flex-1 py-2 font-semibold rounded-xl transition-all ${
+            className={`flex-1 py-2.5 font-semibold rounded-xl transition-all ${
               mode === 'signup'
                 ? 'bg-indigo-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
@@ -359,7 +191,7 @@ export default function AuthModal({ onLoginSuccess }) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {mode === 'signup' && (
             <div>
               <label className="block font-semibold text-slate-300 mb-1">
@@ -435,7 +267,7 @@ export default function AuthModal({ onLoginSuccess }) {
             )}
           </div>
 
-          {/* Device Sync reminder */}
+          {/* Sync indicator */}
           <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
             <span className="flex items-center gap-1.5">
               <Laptop className="w-3.5 h-3.5 text-indigo-400" />
@@ -443,8 +275,9 @@ export default function AuthModal({ onLoginSuccess }) {
               <Smartphone className="w-3.5 h-3.5 text-rose-400" />
               Synchronisation PC &amp; Téléphone
             </span>
-            <span className="text-emerald-400 font-semibold">
-              {hasCloudConfig ? 'Temps Réel' : 'Hors-ligne'}
+            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Automatique
             </span>
           </div>
 
@@ -461,22 +294,12 @@ export default function AuthModal({ onLoginSuccess }) {
             ) : (
               <>
                 <span>
-                  {mode === 'signup' ? 'Créer mon compte en ligne' : 'Se connecter'}
+                  {mode === 'signup' ? 'Créer mon compte' : 'Se connecter'}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
-
-          {!hasCloudConfig && (
-            <button
-              type="button"
-              onClick={handleLocalFallback}
-              className="w-full text-center text-[11px] text-slate-500 hover:text-slate-300 py-1 underline transition-colors"
-            >
-              Continuer sans compte Cloud (Mode local)
-            </button>
-          )}
         </form>
       </div>
     </div>
