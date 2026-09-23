@@ -13,6 +13,7 @@
     "electron:build": "npm run build && electron-builder --win"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -41,7 +42,10 @@
       "preload.js"
     ],
     "win": {
-      "target": ["zip", "dir"],
+      "target": [
+        "zip",
+        "dir"
+      ],
       "forceCodeSigning": false
     },
     "nsis": {

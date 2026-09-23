@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TitleBar from './components/TitleBar';
 import Sidebar from './components/Sidebar';
 import TaskManager from './components/TaskManager';
@@ -20,8 +20,17 @@ import {
   loadSessions,
   saveSessions,
   loadUserAccount,
+  saveUserAccount,
+  logoutUser,
   isUserLoggedIn,
 } from './utils/storage';
+import {
+  getSupabase,
+  isSupabaseConfigured,
+  fetchTasksFromCloud,
+  syncTasksToCloud,
+  signOutWithSupabase,
+} from './utils/supabase';
 import { formatLocalDate, isTaskOnDate } from './utils/recurrence';
 
 export default function App() {
@@ -42,10 +51,133 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState(() => (settings.focusDuration || 25) * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
+  // Keep a ref of tasks to compare during realtime echo
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+
+  // 1. Supabase Session Check & Auth State Listener
+  useEffect(() => {
+    const client = getSupabase();
+    if (!client) return;
+
+    // Check if there is an active session in Supabase
+    client.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const cloudUser = {
+          id: session.user.id,
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+          email: session.user.email,
+          isCloud: true,
+          createdAt: session.user.created_at,
+        };
+        setUser(cloudUser);
+        setIsLoggedIn(true);
+        saveUserAccount(cloudUser);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const cloudUser = {
+          id: session.user.id,
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+          email: session.user.email,
+          isCloud: true,
+          createdAt: session.user.created_at,
+        };
+        setUser(cloudUser);
+        setIsLoggedIn(true);
+        saveUserAccount(cloudUser);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // 2. Fetch Tasks from Cloud when user is logged in
+  useEffect(() => {
+    if (!isLoggedIn || !user?.id || !user?.isCloud) return;
+
+    let isMounted = true;
+    const loadCloudTasks = async () => {
+      try {
+        const cloudTasks = await fetchTasksFromCloud(user.id);
+        if (!isMounted) return;
+
+        if (cloudTasks && cloudTasks.length > 0) {
+          setTasks(cloudTasks);
+        } else {
+          // If Supabase has no tasks yet for this user, upload existing local tasks
+          const localTasks = loadTasks();
+          if (localTasks && localTasks.length > 0) {
+            await syncTasksToCloud(localTasks, user.id);
+          }
+        }
+      } catch (err) {
+        console.error('Erreur chargement des tâches Supabase:', err);
+      }
+    };
+
+    loadCloudTasks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, user?.id, user?.isCloud]);
+
+  // 3. Save tasks locally immediately, and debounce sync to Cloud
   useEffect(() => {
     saveTasks(tasks);
-  }, [tasks]);
 
+    if (!isLoggedIn || !user?.id || !user?.isCloud) return;
+
+    const timer = setTimeout(() => {
+      syncTasksToCloud(tasks, user.id);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [tasks, isLoggedIn, user?.id, user?.isCloud]);
+
+  // 4. Real-time Subscription to synchronize Mobile and PC instantly
+  useEffect(() => {
+    const client = getSupabase();
+    if (!client || !isLoggedIn || !user?.id || !user?.isCloud) return;
+
+    const channel = client
+      .channel(`realtime-tasks-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          const freshTasks = await fetchTasksFromCloud(user.id);
+          if (freshTasks) {
+            // Check if changes actually differ to prevent state stutter
+            if (JSON.stringify(freshTasks) !== JSON.stringify(tasksRef.current)) {
+              setTasks(freshTasks);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, [isLoggedIn, user?.id, user?.isCloud]);
+
+  // Save Settings & Sessions
   useEffect(() => {
     saveSettings(settings);
   }, [settings]);
@@ -95,8 +227,23 @@ export default function App() {
     setIsLoggedIn(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOutWithSupabase();
+    } catch (e) {
+      console.error(e);
+    }
+    logoutUser();
+    setUser(null);
     setIsLoggedIn(false);
+  };
+
+  const handleManualSync = async () => {
+    if (user?.id && user?.isCloud) {
+      await syncTasksToCloud(tasks, user.id);
+      const fresh = await fetchTasksFromCloud(user.id);
+      if (fresh && fresh.length > 0) setTasks(fresh);
+    }
   };
 
   const activeTask = tasks.find((t) => t.id === activeTaskId);
@@ -198,6 +345,7 @@ export default function App() {
           user={user}
           onClose={() => setIsProfileOpen(false)}
           onLogout={handleLogout}
+          onManualSync={handleManualSync}
         />
       )}
 
